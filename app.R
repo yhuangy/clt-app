@@ -83,7 +83,7 @@ ui <- fluidPage(
 
 # Define server function --------------------------------------------
 #seed <- as.numeric(Sys.time())
-seed <- 106
+seed <- 101
 
 server <- function(input, output, session) {
   
@@ -166,8 +166,8 @@ server <- function(input, output, session) {
                        rbinom = "Population distribution: Bernoulli")
     
     pop <- parent()
-    m_pop <- round(mean(pop), 0)
-    sd_pop <- round(sd(pop), 0)
+    m_pop <- round(mean(pop), 1)
+    sd_pop <- round(sd(pop), 1)
     df <- tibble(samples = pop)
     
     if (input$dist == "rnorm") {
