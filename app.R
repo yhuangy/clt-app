@@ -1,0 +1,310 @@
+# Load packages ----------------------------------------------------------------
+library(shiny)
+library(tidyverse)
+library(gridExtra)
+
+# Define UI --------------------------------------------------------------------
+ui <- fluidPage(
+  titlePanel("Central Limit Theorem for Means", windowTitle = "CLT for means"),
+  sidebarLayout(
+    sidebarPanel(
+      wellPanel(
+        # Select distribution ----
+        radioButtons(
+          inputId = "dist",
+          label   = "Population distribution",
+          choices = c("Normal" = "rnorm",
+                      "Bernoulli (coin flip)" = "rbinom"),
+          selected = "rnorm"
+        ),
+        
+        # Distribution parameters / features ----
+        uiOutput("mu"),
+        uiOutput("sd"),
+        uiOutput("coin"),
+        
+        # Select sample size ----
+        sliderInput("n", "Sample size:", value = 30, min = 2, max = 500),
+        br(),
+        
+        # Number of samples ----
+        sliderInput("k", "Number of samples:", value = 200, min = 10, max = 1000)
+      )
+    ),
+    
+    mainPanel(
+      tabsetPanel(
+        type = "tabs",
+        # First tab ----
+        tabPanel(
+          title = "Population Distribution",
+          plotOutput("pop.dist", height = "500px"),
+          br()
+        ),
+        # Second tab ----
+        tabPanel(
+          title = "Samples",
+          br(),
+          plotOutput("sample.dist", height = "600px"),
+          div(h3(textOutput("num.samples")), align = "center"),
+          br()
+        ),
+        # Third tab ----
+        tabPanel(
+          title = "Sampling Distribution",
+          fluidRow(
+            column(
+              width = 7, br(), br(),
+              div(textOutput("CLT.descr"), align = "justify")
+            ),
+            column(
+              width = 5, br(),
+              plotOutput("pop.dist.two", width = "85%", height = "200px")
+            )
+          ),
+          fluidRow(
+            column(
+              width = 12, br(),
+              plotOutput("sampling.dist"),
+              div(textOutput("sampling.descr", inline = TRUE), align = "center")
+            )
+          )
+        )
+      )
+    )
+  )
+)
+
+# Define server function --------------------------------------------
+#seed <- as.numeric(Sys.time())
+seed <- 110
+
+server <- function(input, output, session) {
+  
+  # Normal params ----
+  output$mu <- renderUI({
+    if (input$dist == "rnorm") {
+      sliderInput("mu", "Mean:", value = 0, min = -40, max = 50)
+    }
+  })
+  
+  output$sd <- renderUI({
+    if (input$dist == "rnorm") {
+      sliderInput("sd", "Standard deviation:", value = 10, min = 1, max = 30)
+    }
+  })
+  
+  # Bernoulli param (probability) ----
+  output$coin <- renderUI({
+    if (input$dist == "rbinom") {
+      sliderInput("p", "Probability of heads (p):",
+                  value = 0.5, min = 0.05, max = 0.95, step = 0.01)
+    }
+  })
+  
+  # RNG helper ----
+  rand_draw <- function(dist, n, mu, sd, prob) {
+    if (dist == "rnorm") {
+      req(mu, sd)
+      return(rnorm(n, mean = mu, sd = sd))
+    } else if (dist == "rbinom") {
+      req(prob)
+      return(rbinom(n, size = 1, prob = prob))  # Bernoulli( p )
+    }
+  }
+  rep_rand_draw <- repeatable(rand_draw)
+  
+  # Population (large) ----
+  parent <- reactive({
+    n_sample <- 1e5
+    rep_rand_draw(input$dist, n_sample, input$mu, input$sd, input$p)
+  })
+  
+  # Samples matrix: k columns, each column is a sample of size n ----
+  samples <- reactive({
+    pop <- parent()
+    replicate(input$k, sample(pop, input$n, replace = TRUE))
+  })
+  
+  # --- Plots --------------------------------------------------------
+  
+  # Population plot (tab 1) ----
+  output$pop.dist <- renderPlot({
+    distname <- switch(input$dist,
+                       rnorm  = "Population distribution: Normal",
+                       rbinom = "Population distribution: Bernoulli (coin flip)")
+    
+    pop <- parent()
+    m_pop <- round(mean(pop), 2)
+    sd_pop <- round(sd(pop), 2)
+    df <- tibble(samples = pop)
+    
+    if (input$dist == "rnorm") {
+      pdens <- density(df$samples)
+      y_pos <- max(pdens$y) - 0.2 * max(pdens$y)
+      mu <- req(input$mu)
+      x_pos <- ifelse(mu > 0, min(-100, min(df$samples)) + 40,
+                      max(100, max(df$samples)) - 40)
+      
+      ggplot(df, aes(x = samples, y = ..density..)) +
+        geom_histogram(binwidth = 5, color = "white", fill = "steelblue") +
+        stat_density(geom = "line", color = "steelblue", size = 1) +
+        scale_x_continuous(limits = c(min(-100, df$samples), max(100, df$samples))) +
+        labs(title = distname, x = "x") +
+        annotate("text", x = x_pos, y = y_pos,
+                 label = paste("mean of x =", m_pop,
+                               "\nSD of x =", sd_pop),
+                 color = "black", size = 5) +
+        theme_light(base_size = 19) +
+        theme(plot.title = element_text(hjust = 0.5),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank())
+      
+    } else { # Bernoulli
+      ggplot(df, aes(x = factor(samples))) +
+        geom_bar(color = "white", fill = "steelblue") +
+        scale_x_discrete(labels = c("0 (Tail)", "1 (Head)")) +
+        labs(title = distname, x = "x", y = "Count") +
+        annotate("text", x = 2, y = Inf, vjust = 2,
+                 label = paste("mean of x =", m_pop, "\nSD of x =", sd_pop),
+                 color = "white", size = 5) +
+        theme_light(base_size = 19) +
+        theme(plot.title = element_text(hjust = 0.5),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank())
+    }
+  })
+  
+  # Population distribution plot (small plot on tab 3) ----
+  output$pop.dist.two <- renderPlot({
+    distname <- switch(input$dist,
+                       rnorm  = "Population distribution: Normal",
+                       rbinom = "Population distribution: Bernoulli (coin flip)")
+    
+    pop <- parent()
+    m_pop <- round(mean(pop), 2)
+    sd_pop <- round(sd(pop), 2)
+    df <- tibble(samples = pop)
+    
+    if (input$dist == "rnorm") {
+      pdens <- density(df$samples)
+      y_pos <- max(pdens$y) - 0.2 * max(pdens$y)
+      mu <- req(input$mu)
+      x_pos <- ifelse(mu > 0, min(-100, min(df$samples)) + 27,
+                      max(100, max(df$samples)) - 27)
+      
+      ggplot(df, aes(x = samples, y = ..density..)) +
+        geom_histogram(bins = 45, color = "white", fill = "steelblue") +
+        stat_density(geom = "line", color = "steelblue", size = 1) +
+        scale_x_continuous(limits = c(min(-100, df$samples), max(100, df$samples))) +
+        labs(title = distname, x = "x",
+             subtitle = paste("mean of x =", m_pop, ", SD of x =", sd_pop)) +
+        theme_light(base_size = 10) +
+        theme(plot.title = element_text(hjust = 0.5),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank())
+      
+    } else { # Bernoulli
+      ggplot(df, aes(x = factor(samples))) +
+        geom_bar(color = "white", fill = "steelblue", width = 0.7) +
+        scale_x_discrete(labels = c("0", "1")) +
+        labs(title = "Population distribution: Bernoulli", 
+             x = "x", y = "Count",
+             subtitle = paste("mean of x =", m_pop, "SD of x =", sd_pop)) +
+        theme_light(base_size = 10) +
+        theme(plot.title = element_text(hjust = 0.5),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank())
+    }
+  })
+  
+  # Sample panels (8 samples, tab 2) ----
+  output$sample.dist <- renderPlot({
+    y <- samples()
+    x <- as_tibble(samples())
+    
+    plots <- vector("list", 8)
+    for (i in 1:8) {
+      m <- round(mean(y[, i]), 2)
+      s <- round(sd(y[, i]), 2)
+      
+      # Position text near the right
+      x_range <- max(y[, i]) - min(y[, i])
+      x_pos <- max(y[, i]) - 0.1 * ifelse(x_range == 0, 1, x_range)
+      
+      plots[[i]] <- ggplot(x, aes_string(x = paste0("V", i))) +
+        geom_dotplot(alpha = 0.8, dotsize = 0.7) +
+        labs(title = paste("Sample", i), x = "", y = "",
+             subtitle = paste("x_bar =", m, ", SD =", s)) +
+        theme_light(base_size = 13) +
+        scale_y_continuous(limits = c(0, 2), breaks = NULL) +
+        theme(plot.title = element_text(hjust = 0.5),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank()) 
+    }
+    
+    grid.arrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]],
+                 plots[[5]], plots[[6]], ncol = 3)
+  })
+  
+  # text for sample plots ----
+  output$num.samples <- renderText({
+    paste0("... continuing to Sample ", input$k, ".")
+  })
+  
+  # Sampling distribution ----
+  output$sampling.dist <- renderPlot({
+    distname <- switch(input$dist,
+                       rnorm  = "normal population",
+                       rbinom = "Bernoulli (coin flip) population")
+    
+    ndist <- tibble(means = colMeans(samples()))
+    m_samp <- round(mean(ndist$means), 2)
+    sd_samp <- round(sd(ndist$means), 2)
+    
+    ndens <- density(ndist$means)
+    y_pos <- max(ndens$y) - 0.1 * max(ndens$y)
+    
+    x_range <- max(ndist$means) - min(ndist$means)
+    x_pos <- ifelse(m_samp > 0,
+                    min(ndist$means) + 0.1 * x_range,
+                    max(ndist$means) - 0.1 * x_range)
+    
+    ggplot(ndist, aes(x = means, y = ..density..)) +
+      geom_histogram(bins = 20, color = "white", fill = "#009499") +
+      stat_density(geom = "line", color = "#009499", size = 1) +
+      labs(title = "Sampling Distribution",
+           x = "Sample means", y = "",
+           subtitle = paste("mean of x_bar =", m_samp, ", SE of x_bar =", sd_samp)) +
+      theme_light(base_size = 19) +
+      theme(plot.title = element_text(hjust = 0.5),
+            panel.grid.major = element_blank(),
+            panel.grid.minor = element_blank())
+  })
+  
+  # description for sampling distribution plot ----
+  output$sampling.descr <- renderText({
+    distname <- switch(input$dist,
+                       rnorm  = "normal population",
+                       rbinom = "Bernoulli (coin flip) population")
+    paste("Distribution of means of", input$k, "random samples,",
+          "each with", input$n, "observations from a", distname)
+  })
+  
+  # description for CLT ----
+  output$CLT.descr <- renderText({
+    pop <- parent()
+    m_pop <- round(mean(pop), 2)
+    s_pop <- round(sd(pop), 2)
+    se <- round(s_pop / sqrt(input$n), 2)
+    paste0("According to the Central Limit Theorem (CLT), the distribution of sample means ",
+           "(the sampling distribution) should be nearly normal. The mean of the sampling distribution ",
+           "should be approximately equal to the population mean (", m_pop, "), and the standard error ",
+           "(the SD of sample means) should be approximately the population SD divided by the square root of the sample size ",
+           "(", s_pop, "/sqrt(", input$n, ") = ", se, "). Below is our sampling distribution graph. ",
+           "To help compare, the population distribution is displayed on the right.")
+  })
+}
+
+# Create the Shiny app object ---------------------------------------
+shinyApp(ui = ui, server = server)
