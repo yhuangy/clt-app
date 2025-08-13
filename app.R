@@ -2,6 +2,7 @@
 library(shiny)
 library(tidyverse)
 library(gridExtra)
+library(plotly)
 
 # Define UI --------------------------------------------------------------------
 ui <- fluidPage(
@@ -18,6 +19,8 @@ ui <- fluidPage(
           selected = "rnorm"
         ),
         
+        hr(),
+        
         # Distribution parameters / features ----
         uiOutput("mu"),
         uiOutput("sd"),
@@ -28,10 +31,14 @@ ui <- fluidPage(
         br(),
         
         # Number of samples ----
-        sliderInput("k", "Number of samples:", value = 200, min = 10, max = 1000)
-      )
+        sliderInput("k", "Number of samples:", value = 200, min = 10, max = 1000),
+      
+        hr(),
+        h5("Code to simulate one sample"),
+        verbatimTextOutput("repro_code")   # lives under the selection panel
+      ) 
     ),
-    
+  
     mainPanel(
       tabsetPanel(
         type = "tabs",
@@ -124,6 +131,31 @@ server <- function(input, output, session) {
   samples <- reactive({
     pop <- parent()
     replicate(input$k, sample(pop, input$n, replace = TRUE))
+  })
+  
+  # Code to reproduce one sample
+  output$repro_code <- renderText({
+    # (Optional) include your fixed seed for reproducibility
+    seed_line <- paste0("set.seed(", seed, ")")
+    
+    if (input$dist == "rnorm") {
+      paste(
+        seed_line,
+        sprintf("n  <- %d", input$n),
+        sprintf("mu <- %s", signif(input$mu, 6)),
+        sprintf("sd <- %s", signif(input$sd, 6)),
+        "rnorm(n, mean = mu, sd = sd)",
+        sep = "\n"
+      )
+    } else { # Bernoulli (coin flip)
+      paste(
+        seed_line,
+        sprintf("n <- %d", input$n),
+        sprintf("p <- %s", signif(input$p, 6)),
+        "rbinom(n, size = 1, prob = p)",
+        sep = "\n"
+      )
+    }
   })
   
   # --- Plots --------------------------------------------------------
@@ -297,11 +329,13 @@ server <- function(input, output, session) {
     m_pop <- round(mean(pop), 2)
     s_pop <- round(sd(pop), 2)
     se <- round(s_pop / sqrt(input$n), 2)
-    paste0("According to the Central Limit Theorem (CLT), the distribution of sample means ",
-           "should be nearly normal. The mean of the sampling distribution ",
-           "should be approximately equal to the population mean (", m_pop, "), and the standard error ",
-           "should be approximately the population SD divided by the square root of the sample size ",
-           "(", s_pop, "/sqrt(", input$n, ") = ", se, ").")
+    paste0(
+        "When sample size is greater than 30, the Central Limit Theorem suggests that ",
+        "the sampling distribution of the mean will be approximately normal. Its mean should be close ",
+        "to the population mean (", m_pop, "), and its standard error should be ",
+        "the population standard deviation (", s_pop, ") divided by the square root of the sample size: ",
+        s_pop, "/sqrt(", input$n, ") = ", se, "."
+    )
   })
 }
 
