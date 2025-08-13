@@ -77,7 +77,7 @@ ui <- fluidPage(
 
 # Define server function --------------------------------------------
 #seed <- as.numeric(Sys.time())
-seed <- 110
+seed <- 1432
 
 server <- function(input, output, session) {
   
@@ -132,7 +132,7 @@ server <- function(input, output, session) {
   output$pop.dist <- renderPlot({
     distname <- switch(input$dist,
                        rnorm  = "Population distribution: Normal",
-                       rbinom = "Population distribution: Bernoulli (coin flip)")
+                       rbinom = "Population distribution: Bernoulli")
     
     pop <- parent()
     m_pop <- round(mean(pop), 2)
@@ -147,7 +147,7 @@ server <- function(input, output, session) {
                       max(100, max(df$samples)) - 40)
       
       ggplot(df, aes(x = samples, y = ..density..)) +
-        geom_histogram(binwidth = 5, color = "white", fill = "steelblue") +
+        geom_histogram(bins = 25, color = "white", fill = "steelblue") +
         stat_density(geom = "line", color = "steelblue", size = 1) +
         scale_x_continuous(limits = c(min(-100, df$samples), max(100, df$samples))) +
         labs(title = distname, x = "x") +
@@ -194,7 +194,7 @@ server <- function(input, output, session) {
                       max(100, max(df$samples)) - 27)
       
       ggplot(df, aes(x = samples, y = ..density..)) +
-        geom_histogram(bins = 45, color = "white", fill = "steelblue") +
+        geom_histogram(bins = 25, color = "white", fill = "steelblue") +
         stat_density(geom = "line", color = "steelblue", size = 1) +
         scale_x_continuous(limits = c(min(-100, df$samples), max(100, df$samples))) +
         labs(title = distname, x = "x",
@@ -218,7 +218,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Sample panels (8 samples, tab 2) ----
+  # Sample panels (6 samples, tab 2) ----
   output$sample.dist <- renderPlot({
     y <- samples()
     x <- as_tibble(samples())
@@ -252,11 +252,11 @@ server <- function(input, output, session) {
     paste0("... continuing to Sample ", input$k, ".")
   })
   
-  # Sampling distribution ----
+  # Sampling distribution (tab 3) ----
   output$sampling.dist <- renderPlot({
     distname <- switch(input$dist,
                        rnorm  = "normal population",
-                       rbinom = "Bernoulli (coin flip) population")
+                       rbinom = "Bernoulli population")
     
     ndist <- tibble(means = colMeans(samples()))
     m_samp <- round(mean(ndist$means), 2)
@@ -271,8 +271,8 @@ server <- function(input, output, session) {
                     max(ndist$means) - 0.1 * x_range)
     
     ggplot(ndist, aes(x = means, y = ..density..)) +
-      geom_histogram(bins = 20, color = "white", fill = "#009499") +
-      stat_density(geom = "line", color = "#009499", size = 1) +
+      geom_histogram(bins = 15, color = "white", fill = "darkgray") +
+      stat_density(geom = "line", color = "darkgray", size = 1) +
       labs(title = "Sampling Distribution",
            x = "Sample means", y = "",
            subtitle = paste("mean of x_bar =", m_samp, ", SE of x_bar =", sd_samp)) +
@@ -286,7 +286,7 @@ server <- function(input, output, session) {
   output$sampling.descr <- renderText({
     distname <- switch(input$dist,
                        rnorm  = "normal population",
-                       rbinom = "Bernoulli (coin flip) population")
+                       rbinom = "Bernoulli (coin flip)")
     paste("Distribution of means of", input$k, "random samples,",
           "each with", input$n, "observations from a", distname)
   })
@@ -298,11 +298,10 @@ server <- function(input, output, session) {
     s_pop <- round(sd(pop), 2)
     se <- round(s_pop / sqrt(input$n), 2)
     paste0("According to the Central Limit Theorem (CLT), the distribution of sample means ",
-           "(the sampling distribution) should be nearly normal. The mean of the sampling distribution ",
+           "should be nearly normal. The mean of the sampling distribution ",
            "should be approximately equal to the population mean (", m_pop, "), and the standard error ",
-           "(the SD of sample means) should be approximately the population SD divided by the square root of the sample size ",
-           "(", s_pop, "/sqrt(", input$n, ") = ", se, "). Below is our sampling distribution graph. ",
-           "To help compare, the population distribution is displayed on the right.")
+           "should be approximately the population SD divided by the square root of the sample size ",
+           "(", s_pop, "/sqrt(", input$n, ") = ", se, ").")
   })
 }
 
