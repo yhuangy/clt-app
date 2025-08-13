@@ -2,7 +2,6 @@
 library(shiny)
 library(tidyverse)
 library(gridExtra)
-library(plotly)
 
 # Define UI --------------------------------------------------------------------
 ui <- fluidPage(
