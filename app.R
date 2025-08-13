@@ -213,8 +213,8 @@ server <- function(input, output, session) {
                        rbinom = "Population distribution: Bernoulli (coin flip)")
     
     pop <- parent()
-    m_pop <- round(mean(pop), 0)
-    sd_pop <- round(sd(pop), 0)
+    m_pop <- round(mean(pop), 1)
+    sd_pop <- round(sd(pop), 1)
     df <- tibble(samples = pop)
     
     if (input$dist == "rnorm") {
@@ -324,8 +324,8 @@ server <- function(input, output, session) {
   # description for CLT ----
   output$CLT.descr <- renderText({
     pop <- parent()
-    m_pop <- round(mean(pop), 2)
-    s_pop <- round(sd(pop), 2)
+    m_pop <- round(mean(pop), 1)
+    s_pop <- round(sd(pop), 1)
     se <- round(s_pop / sqrt(input$n), 2)
     paste0(
         "When sample size is greater than 30, the Central Limit Theorem suggests that ",
