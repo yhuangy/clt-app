@@ -33,7 +33,7 @@ ui <- fluidPage(
         sliderInput("k", "Number of samples:", value = 200, min = 10, max = 1000),
       
         hr(),
-        h5("Code to simulate one sample"),
+        h5("To simulate one sample"),
         verbatimTextOutput("repro_code")   # lives under the selection panel
       ) 
     ),
@@ -60,11 +60,11 @@ ui <- fluidPage(
           title = "Sampling Distribution",
           fluidRow(
             column(
-              width = 7, br(), br(),
+              width = 6, br(), br(),
               div(textOutput("CLT.descr"), align = "justify")
             ),
             column(
-              width = 5, br(),
+              width = 6, br(),
               plotOutput("pop.dist.two", width = "85%", height = "200px")
             )
           ),
@@ -83,7 +83,7 @@ ui <- fluidPage(
 
 # Define server function --------------------------------------------
 #seed <- as.numeric(Sys.time())
-seed <- 1432
+seed <- 106
 
 server <- function(input, output, session) {
   
@@ -166,8 +166,8 @@ server <- function(input, output, session) {
                        rbinom = "Population distribution: Bernoulli")
     
     pop <- parent()
-    m_pop <- round(mean(pop), 2)
-    sd_pop <- round(sd(pop), 2)
+    m_pop <- round(mean(pop), 0)
+    sd_pop <- round(sd(pop), 0)
     df <- tibble(samples = pop)
     
     if (input$dist == "rnorm") {
@@ -178,7 +178,7 @@ server <- function(input, output, session) {
                       max(100, max(df$samples)) - 40)
       
       ggplot(df, aes(x = samples, y = ..density..)) +
-        geom_histogram(bins = 25, color = "white", fill = "steelblue") +
+        #geom_histogram(bins = 25, color = "white", fill = "steelblue") +
         stat_density(geom = "line", color = "steelblue", size = 1) +
         scale_x_continuous(limits = c(min(-100, df$samples), max(100, df$samples))) +
         labs(title = distname, x = "x") +
@@ -186,7 +186,7 @@ server <- function(input, output, session) {
                  label = paste("mean of x =", m_pop,
                                "\nSD of x =", sd_pop),
                  color = "black", size = 5) +
-        theme_light(base_size = 19) +
+        theme_classic(base_size = 19) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank())
@@ -199,7 +199,7 @@ server <- function(input, output, session) {
         annotate("text", x = 2, y = Inf, vjust = 2,
                  label = paste("mean of x =", m_pop, "\nSD of x =", sd_pop),
                  color = "white", size = 5) +
-        theme_light(base_size = 19) +
+        theme_classic(base_size = 19) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank())
@@ -213,8 +213,8 @@ server <- function(input, output, session) {
                        rbinom = "Population distribution: Bernoulli (coin flip)")
     
     pop <- parent()
-    m_pop <- round(mean(pop), 2)
-    sd_pop <- round(sd(pop), 2)
+    m_pop <- round(mean(pop), 0)
+    sd_pop <- round(sd(pop), 0)
     df <- tibble(samples = pop)
     
     if (input$dist == "rnorm") {
@@ -225,12 +225,12 @@ server <- function(input, output, session) {
                       max(100, max(df$samples)) - 27)
       
       ggplot(df, aes(x = samples, y = ..density..)) +
-        geom_histogram(bins = 25, color = "white", fill = "steelblue") +
+        #geom_histogram(bins = 25, color = "white", fill = "steelblue") +
         stat_density(geom = "line", color = "steelblue", size = 1) +
         scale_x_continuous(limits = c(min(-100, df$samples), max(100, df$samples))) +
-        labs(title = distname, x = "x",
+        labs(title = distname, x = "x", y = "",
              subtitle = paste("mean of x =", m_pop, ", SD of x =", sd_pop)) +
-        theme_light(base_size = 10) +
+        theme_classic(base_size = 10) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank())
@@ -242,7 +242,7 @@ server <- function(input, output, session) {
         labs(title = "Population distribution: Bernoulli", 
              x = "x", y = "Count",
              subtitle = paste("mean of x =", m_pop, "SD of x =", sd_pop)) +
-        theme_light(base_size = 10) +
+        theme_classic(base_size = 10) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank())
@@ -264,18 +264,17 @@ server <- function(input, output, session) {
       x_pos <- max(y[, i]) - 0.1 * ifelse(x_range == 0, 1, x_range)
       
       plots[[i]] <- ggplot(x, aes_string(x = paste0("V", i))) +
-        geom_dotplot(alpha = 0.8, dotsize = 0.7) +
+        geom_dotplot(alpha = 0.6, dotsize = 0.7) +
         labs(title = paste("Sample", i), x = "", y = "",
              subtitle = paste("x_bar =", m, ", SD =", s)) +
-        theme_light(base_size = 13) +
-        scale_y_continuous(limits = c(0, 2), breaks = NULL) +
+        theme_classic(base_size = 13) +
+        #scale_y_continuous(limits = c(0, 2), breaks = NULL) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank()) 
     }
     
-    grid.arrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]],
-                 plots[[5]], plots[[6]], ncol = 3)
+    grid.arrange(plots[[1]], plots[[2]], plots[[3]], plots[[4]], ncol = 2)
   })
   
   # text for sample plots ----
@@ -307,7 +306,7 @@ server <- function(input, output, session) {
       labs(title = "Sampling Distribution (x_bar)",
            x = "Sample means", y = "",
            subtitle = paste("mean =", m_samp, ", SE =", sd_samp)) +
-      theme_light(base_size = 19) +
+      theme_classic(base_size = 19) +
       theme(plot.title = element_text(hjust = 0.5),
             panel.grid.major = element_blank(),
             panel.grid.minor = element_blank())
