@@ -304,9 +304,9 @@ server <- function(input, output, session) {
     ggplot(ndist, aes(x = means, y = ..density..)) +
       geom_histogram(bins = 15, color = "white", fill = "darkgray") +
       stat_density(geom = "line", color = "darkgray", size = 1) +
-      labs(title = "Sampling Distribution",
+      labs(title = "Sampling Distribution (x_bar)",
            x = "Sample means", y = "",
-           subtitle = paste("mean of x_bar =", m_samp, ", SE of x_bar =", sd_samp)) +
+           subtitle = paste("mean =", m_samp, ", SE =", sd_samp)) +
       theme_light(base_size = 19) +
       theme(plot.title = element_text(hjust = 0.5),
             panel.grid.major = element_blank(),
