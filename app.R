@@ -5,7 +5,7 @@ library(gridExtra)
 
 # Define UI --------------------------------------------------------------------
 ui <- fluidPage(
-  titlePanel("Central Limit Theorem for Means", windowTitle = "CLT for means"),
+  titlePanel("Central Limit Theorem", windowTitle = "CLT for means"),
   sidebarLayout(
     sidebarPanel(
       wellPanel(
@@ -31,10 +31,11 @@ ui <- fluidPage(
         
         # Number of samples ----
         sliderInput("k", "Number of samples:", value = 200, min = 10, max = 1000),
-      
-        hr(),
-        h5("To simulate one sample"),
-        verbatimTextOutput("repro_code")   # lives under the selection panel
+        
+        # Link to wiki ----
+        br(), 
+        helpText(a(href="https://en.wikipedia.org/wiki/Central_limit_theorem", 
+                   target="_blank", "Learn more about CLT"))
       ) 
     ),
   
@@ -75,6 +76,15 @@ ui <- fluidPage(
               div(textOutput("sampling.descr", inline = TRUE), align = "center")
             )
           )
+        ),
+        # Forth tab ---
+        tabPanel("Base R Code",
+                 h3("Generate a Single Sample"),
+                 verbatimTextOutput("repro_code"),
+                 h3("Repeated Sampling"),
+                 verbatimTextOutput("repro_code1"),
+                 h3("Plot the sampling distribution"),
+                 verbatimTextOutput("repro_code2")
         )
       )
     )
@@ -134,9 +144,7 @@ server <- function(input, output, session) {
   
   # Code to reproduce one sample
   output$repro_code <- renderText({
-    # (Optional) include your fixed seed for reproducibility
-    seed_line <- paste0("set.seed(", seed, ")")
-    
+    seed_line <- sprintf("set.seed(%s)", seed)
     if (input$dist == "rnorm") {
       paste(
         seed_line,
@@ -155,6 +163,46 @@ server <- function(input, output, session) {
         sep = "\n"
       )
     }
+  })
+  
+  # Repeated sampling
+  output$repro_code1 <- renderText({
+    #fmt <- function(x) formatC(x, digits = 6, format = "fg", flag = "#")
+    seed_line <- sprintf("set.seed(%s)", seed)
+    
+    if (input$dist == "rnorm") {
+      paste(
+        sprintf("k  <- %d", input$k),
+        "sample_means <- numeric(k)",
+        "for (i in 1:k) {",
+        "  samples <- rnorm(n, mean = mu, sd = sd)",
+        "  sample_means[i] <- mean(samples)",
+        "}",
+        "sample_means",
+        sep = "\n"
+      )
+    } else { # Bernoulli (coin flip)
+      paste(
+        sprintf("k <- %d", input$k),
+        "sample_means <- numeric(k)",
+        "for (i in 1:k) {",
+        "  samples <- rbinom(n, size = 1, prob = p)",
+        "  sample_means[i] <- mean(samples)",
+        "}",
+        "sample_means",
+        sep = "\n"
+      )
+    }
+  })
+  
+  # Plotting
+  output$repro_code2 <- renderText({
+    paste(
+      'plot(density(sample_means),',
+      '     main = "Sampling Distribution (x_bar)",',
+      '     xlab = "Sample Means")',
+      sep = "\n"
+    )
   })
   
   # --- Plots --------------------------------------------------------
@@ -329,8 +377,8 @@ server <- function(input, output, session) {
     se <- round(s_pop / sqrt(input$n), 2)
     paste0(
         "When sample size is greater than 30, the Central Limit Theorem suggests that ",
-        "the sampling distribution of the mean will be approximately normal. Its mean should be close ",
-        "to the population mean (", m_pop, "), and its standard error should be ",
+        "the sampling distribution of the mean will be approximately normal. The mean should be close ",
+        "to the population mean (", m_pop, "), and standard error should be ",
         "the population standard deviation (", s_pop, ") divided by the square root of the sample size: ",
         s_pop, "/sqrt(", input$n, ") = ", se, "."
     )
