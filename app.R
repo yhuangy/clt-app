@@ -200,7 +200,7 @@ server <- function(input, output, session) {
     paste(
       'plot(density(sample_means),',
       '     main = "Sampling Distribution (x_bar)",',
-      '     xlab = "Sample Means")',
+      '     xlab = "Sample means")',
       sep = "\n"
     )
   })
