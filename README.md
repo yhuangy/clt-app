@@ -1,8 +1,8 @@
-# Central Limit Theorem for sample means
-
-This is a simple ShinyApp that demonstrates the Central Limit Theorem (CLT) through simulations.
+# clt-app
 
 ![Screenshot of the app](interface.png)
+
+This is a simple ShinyApp that demonstrates the Central Limit Theorem (CLT) through simulations.
 
 ### Features
 
