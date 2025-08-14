@@ -132,7 +132,7 @@ server <- function(input, output, session) {
   
   # Population (large) ----
   parent <- reactive({
-    n_sample <- 1e5
+    n_sample <- 1e6
     rep_rand_draw(input$dist, n_sample, input$mu, input$sd, input$p)
   })
   
