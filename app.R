@@ -5,7 +5,7 @@ library(gridExtra)
 
 # Define UI --------------------------------------------------------------------
 ui <- fluidPage(
-  titlePanel("Central Limit Theorem", windowTitle = "CLT for means"),
+  titlePanel("Week 3. Central Limit Theorem", windowTitle = "CLT for means"),
   sidebarLayout(
     sidebarPanel(
       wellPanel(
@@ -30,7 +30,7 @@ ui <- fluidPage(
         br(),
         
         # Number of samples ----
-        sliderInput("k", "Number of samples:", value = 200, min = 10, max = 1000),
+        sliderInput("k", "Number of samples:", value = 500, min = 10, max = 1000),
         
         # Link to wiki ----
         br(), 
@@ -106,7 +106,7 @@ server <- function(input, output, session) {
   
   output$sd <- renderUI({
     if (input$dist == "rnorm") {
-      sliderInput("sd", "Standard deviation:", value = 10, min = 1, max = 30)
+      sliderInput("sd", "Standard deviation:", value = 10, min = 1, max = 20)
     }
   })
   
@@ -297,7 +297,7 @@ server <- function(input, output, session) {
     }
   })
   
-  # Sample panels (6 samples, tab 2) ----
+  # Sample panels (4 samples, tab 2) ----
   output$sample.dist <- renderPlot({
     y <- samples()
     x <- as_tibble(samples())
@@ -350,7 +350,7 @@ server <- function(input, output, session) {
     
     ggplot(ndist, aes(x = means, y = ..density..)) +
       geom_histogram(bins = 15, color = "white", fill = "darkgray") +
-      stat_density(geom = "line", color = "darkgray", size = 1) +
+      stat_density(geom = "line", color = "black", size = 1) +
       labs(title = "Sampling Distribution (x_bar)",
            x = "Sample means", y = "",
            subtitle = paste("mean =", m_samp, ", SE =", sd_samp)) +
@@ -376,10 +376,12 @@ server <- function(input, output, session) {
     s_pop <- round(sd(pop), 1)
     se <- round(s_pop / sqrt(input$n), 2)
     paste0(
-        "When sample size is greater than 30, the Central Limit Theorem suggests that ",
-        "the sampling distribution of the mean will be approximately normal. The mean should be close ",
+        "When sample size is sufficiently large, CLT suggests that ",
+        "the sampling distribution of the mean will be approximately normal. ", 
+        "The mean should be close ",
         "to the population mean (", m_pop, "), and standard error should be ",
-        "the population standard deviation (", s_pop, ") divided by the square root of the sample size: ",
+        "the population standard deviation (", s_pop, ") ", 
+        "divided by the square root of the sample size: ",
         s_pop, "/sqrt(", input$n, ") = ", se, "."
     )
   })
