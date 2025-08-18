@@ -30,7 +30,7 @@ ui <- fluidPage(
         br(),
         
         # Number of samples ----
-        sliderInput("k", "Number of samples:", value = 500, min = 10, max = 1000),
+        sliderInput("k", "Number of samples:", value = 250, min = 10, max = 1000),
         
         # Link to wiki ----
         br(), 
@@ -83,7 +83,7 @@ ui <- fluidPage(
                  verbatimTextOutput("repro_code"),
                  h3("Repeated Sampling"),
                  verbatimTextOutput("repro_code1"),
-                 h3("Plot the sampling distribution"),
+                 h3("Visualize the sampling distribution"),
                  verbatimTextOutput("repro_code2")
         )
       )
@@ -376,10 +376,12 @@ server <- function(input, output, session) {
     s_pop <- round(sd(pop), 1)
     se <- round(s_pop / sqrt(input$n), 2)
     paste0(
-        "When sample size is sufficiently large, CLT suggests that ",
-        "the sampling distribution of the mean will be approximately normal. ", 
-        "The mean should be close ",
-        "to the population mean (", m_pop, "), and standard error should be ",
+        "Sampling distribution is the distribution of sample statistics ",
+        "(e.g., sample mean) across repeated samples of the same size drawn from the same population. ",
+        "When the sample size is sufficiently large, CLT suggests that ",
+        "the sampling distribution of the sample mean will be approximately normal. ", 
+        "In this example, we expect the sampling distribution to be centered around ",
+        "the population mean (", m_pop, "), with a standard error close to ",
         "the population standard deviation (", s_pop, ") ", 
         "divided by the square root of the sample size: ",
         s_pop, "/sqrt(", input$n, ") = ", se, "."
