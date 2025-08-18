@@ -2,17 +2,19 @@
 
 ![Screenshot of the app](interface.png)
 
-This is a simple ShinyApp that demonstrates the Central Limit Theorem (CLT) through simulations.
+This is a simple ShinyApp that demonstrates the Central Limit Theorem (CLT) through simulations. Access the app [here](https://ythuangy-clt-app.share.connect.posit.cloud/).
 
 ### Features
 
-+ Single sample: Generate a sample from a Normal or Bernoulli distribution with user-defined parameters.
++ Generate a sample from a Normal or Bernoulli distribution with user-defined parameters.
 
-+ Repeated sampling: Draw multiple samples, compute sample means, and visualize the sampling distribution.
++ Simulate repeated sampling, compute sample means, and visualize the sampling distribution for the sample means.
 
-+ Code display: See the (base) R code for sampling and plotting.
++ View the (base) R code for sampling and plotting.
 
 ### Learning outcomes
+
+By interacting with the app, users will be able to
 
 + Understand the Central Limit Theorem for sample means
 
@@ -20,3 +22,4 @@ This is a simple ShinyApp that demonstrates the Central Limit Theorem (CLT) thro
 
 + Connect theory to simulation outputs with reproducible R code.
 
+The app was developed for [DSE1101](https://nusmods.com/courses/DSE1101/introductory-data-science-for-economics) with adaptations from tools provided by [Introduction Modern Statistics (IMS)](https://www.openintro.org/book/ims/).
