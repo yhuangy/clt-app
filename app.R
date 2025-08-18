@@ -5,7 +5,7 @@ library(gridExtra)
 
 # Define UI --------------------------------------------------------------------
 ui <- fluidPage(
-  titlePanel("Week 3. Central Limit Theorem", windowTitle = "CLT for means"),
+  titlePanel("Central Limit Theorem (CLT)", windowTitle = "CLT for means"),
   sidebarLayout(
     sidebarPanel(
       wellPanel(
@@ -32,10 +32,13 @@ ui <- fluidPage(
         # Number of samples ----
         sliderInput("k", "Number of samples:", value = 250, min = 10, max = 1000),
         
-        # Link to wiki ----
-        br(), 
-        helpText(a(href="https://en.wikipedia.org/wiki/Central_limit_theorem", 
-                   target="_blank", "Learn more about CLT"))
+        # Credit ----
+        br(),
+        HTML(paste0(
+          "Developed for <strong>DSE1101</strong>: Introduction to Data Science for Economics, ",
+          "with adaptations from tools by <a href='https://www.openintro.org/book/ims/' target='_blank'>IMS</a> ",
+          "(Introduction to Modern Statistics)."
+        ))
       ) 
     ),
   
