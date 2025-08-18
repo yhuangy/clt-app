@@ -2,7 +2,9 @@
 
 ![Screenshot of the app](interface.png)
 
-This is a simple ShinyApp that demonstrates the Central Limit Theorem (CLT) through simulations. Access the app [here](https://ythuangy-clt-app.share.connect.posit.cloud/).
+This is a simple ShinyApp that demonstrates the Central Limit Theorem (CLT) through simulations. 
+
+Access the app [here](https://ythuangy-clt-app.share.connect.posit.cloud/).
 
 ### Features
 
@@ -14,7 +16,7 @@ This is a simple ShinyApp that demonstrates the Central Limit Theorem (CLT) thro
 
 ### Learning outcomes
 
-By interacting with the app, users will be able to
+By interacting with the app, students will be able to
 
 + Understand the Central Limit Theorem for sample means
 
