@@ -319,7 +319,7 @@ server <- function(input, output, session) {
         labs(title = paste("Sample", i), x = "", y = "",
              subtitle = paste("x_bar =", m, ", SD =", s)) +
         theme_classic(base_size = 13) +
-        #scale_y_continuous(limits = c(0, 2), breaks = NULL) +
+        scale_y_continuous(NULL, breaks = NULL) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank()) 
