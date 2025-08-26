@@ -305,8 +305,8 @@ server <- function(input, output, session) {
     y <- samples()
     x <- as_tibble(samples())
     
-    plots <- vector("list", 8)
-    for (i in 1:8) {
+    plots <- vector("list", 4)
+    for (i in 1:4) {
       m <- round(mean(y[, i]), 2)
       s <- round(sd(y[, i]), 2)
       
