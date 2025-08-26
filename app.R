@@ -31,7 +31,7 @@ ui <- fluidPage(
         
         # Number of samples ----
         helpText(tags$small(style = "color: gray;", "(Used for sampling distribution only)")),
-        sliderInput("k", "Repeated samples:", value = 250, min = 10, max = 1000),
+        sliderInput("k", "Repeated samples:", value = 1000, min = 10, max = 1000),
         
         
         # Credit ----
