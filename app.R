@@ -234,8 +234,8 @@ server <- function(input, output, session) {
         scale_x_continuous(limits = c(min(-100, df$samples), max(100, df$samples))) +
         labs(title = distname, x = "x") +
         annotate("text", x = x_pos, y = y_pos,
-                 label = paste("mean of x =", m_pop,
-                               "\nSD of x =", sd_pop),
+                 label = paste("mean =", m_pop,
+                               "\nSD =", sd_pop),
                  color = "black", size = 5) +
         theme_classic(base_size = 19) +
         theme(plot.title = element_text(hjust = 0.5),
@@ -280,7 +280,7 @@ server <- function(input, output, session) {
         stat_density(geom = "line", color = "steelblue", size = 1) +
         scale_x_continuous(limits = c(min(-100, df$samples), max(100, df$samples))) +
         labs(title = distname, x = "x", y = "",
-             subtitle = paste("mean of x =", m_pop, ", SD of x =", sd_pop)) +
+             subtitle = paste("mean =", m_pop, ", SD =", sd_pop)) +
         theme_classic(base_size = 10) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
@@ -317,7 +317,7 @@ server <- function(input, output, session) {
       plots[[i]] <- ggplot(x, aes_string(x = paste0("V", i))) +
         geom_dotplot(alpha = 0.6, dotsize = 0.7) +
         labs(title = paste("Sample", i), x = "", y = "",
-             subtitle = paste("x_bar =", m, ", SD =", s)) +
+             subtitle = paste("mean =", m, ", SD =", s)) +
         theme_classic(base_size = 13) +
         scale_y_continuous(NULL, breaks = NULL) +
         theme(plot.title = element_text(hjust = 0.5),
