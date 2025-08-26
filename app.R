@@ -249,8 +249,8 @@ server <- function(input, output, session) {
         geom_bar(color = "white", fill = "steelblue") +
         scale_x_discrete(labels = c("0 (Tail)", "1 (Head)")) +
         labs(title = distname, x = "x", y = "Count") +
-        annotate("text", x = 2, y = Inf, vjust = 2,
-                 label = paste("mean of x =", m_pop, "\nSD of x =", sd_pop),
+        annotate("text", x = 2, y = Inf, vjust = 3.5,
+                 label = paste("mean =", m_pop, "\nSD =", sd_pop),
                  color = "white", size = 5) +
         scale_y_continuous(name = NULL, breaks = NULL) +
         theme_classic(base_size = 19) +
@@ -295,7 +295,7 @@ server <- function(input, output, session) {
         scale_x_discrete(labels = c("0", "1")) +
         labs(title = "Population distribution: Bernoulli", 
              x = "x", y = "Count",
-             subtitle = paste("mean of x =", m_pop, "SD of x =", sd_pop)) +
+             subtitle = paste("mean =", m_pop, "SD =", sd_pop)) +
         scale_y_continuous(name = NULL, breaks = NULL) +
         theme_classic(base_size = 10) +
         theme(plot.title = element_text(hjust = 0.5),
@@ -356,8 +356,8 @@ server <- function(input, output, session) {
     ggplot(ndist, aes(x = means, y = ..density..)) +
       geom_histogram(bins = 15, color = "white", fill = "darkgray") +
       stat_density(geom = "line", color = "black", size = 1) +
-      labs(title = "Sampling Distribution (x_bar)",
-           x = "Sample means", y = "",
+      labs(title = expression("Sampling Distribution of sample means (" * bar(x) * ")"),
+           x = expression("Sample means (" * bar(x) * ")"), y = "",
            subtitle = paste("mean =", m_samp, ", SE =", sd_samp)) +
       theme_classic(base_size = 19) +
       theme(plot.title = element_text(hjust = 0.5),
