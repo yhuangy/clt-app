@@ -309,17 +309,15 @@ server <- function(input, output, session) {
     for (i in 1:4) {
       m <- round(mean(y[, i]), 2)
       s <- round(sd(y[, i]), 2)
-      
-      # Position text near the right
       x_range <- max(y[, i]) - min(y[, i])
       x_pos <- max(y[, i]) - 0.1 * ifelse(x_range == 0, 1, x_range)
       
       plots[[i]] <- ggplot(x, aes_string(x = paste0("V", i))) +
-        geom_dotplot(alpha = 0.6, dotsize = 0.7) +
+        geom_dotplot(alpha = 0.6, dotsize = 0.7, stackratio = 1, binwidth = 1.5) +
         labs(title = paste("Sample", i), x = "", y = "",
              subtitle = paste("mean =", m, ", SD =", s)) +
         theme_classic(base_size = 13) +
-        scale_y_continuous(NULL, breaks = NULL) +
+        scale_y_continuous(name = NULL, breaks = NULL, limits = c(0, 1000)) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank()) 
