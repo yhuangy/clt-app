@@ -30,7 +30,9 @@ ui <- fluidPage(
         br(),
         
         # Number of samples ----
-        sliderInput("k", "Number of samples:", value = 250, min = 10, max = 1000),
+        helpText(tags$small(style = "color: gray;", "(Used for sampling distribution only)")),
+        sliderInput("k", "Repeated samples:", value = 250, min = 10, max = 1000),
+        
         
         # Credit ----
         br(),
@@ -250,6 +252,7 @@ server <- function(input, output, session) {
         annotate("text", x = 2, y = Inf, vjust = 2,
                  label = paste("mean of x =", m_pop, "\nSD of x =", sd_pop),
                  color = "white", size = 5) +
+        scale_y_continuous(name = NULL, breaks = NULL) +
         theme_classic(base_size = 19) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
@@ -293,6 +296,7 @@ server <- function(input, output, session) {
         labs(title = "Population distribution: Bernoulli", 
              x = "x", y = "Count",
              subtitle = paste("mean of x =", m_pop, "SD of x =", sd_pop)) +
+        scale_y_continuous(name = NULL, breaks = NULL) +
         theme_classic(base_size = 10) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
@@ -313,11 +317,11 @@ server <- function(input, output, session) {
       x_pos <- max(y[, i]) - 0.1 * ifelse(x_range == 0, 1, x_range)
       
       plots[[i]] <- ggplot(x, aes_string(x = paste0("V", i))) +
-        geom_dotplot(alpha = 0.6, dotsize = 0.7, stackratio = 1, binwidth = 1.5) +
+        geom_dotplot(alpha = 0.6, dotsize = 0.7) +
         labs(title = paste("Sample", i), x = "", y = "",
              subtitle = paste("mean =", m, ", SD =", s)) +
         theme_classic(base_size = 13) +
-        scale_y_continuous(name = NULL, breaks = NULL, limits = c(0, 1000)) +
+        scale_y_continuous(name = NULL, breaks = NULL) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank()) 
