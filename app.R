@@ -14,7 +14,8 @@ ui <- fluidPage(
           inputId = "dist",
           label   = "Population distribution",
           choices = c("Normal" = "rnorm",
-                      "Bernoulli (coin flip)" = "rbinom"),
+                      "Bernoulli (coin flip)" = "rbinom",
+                      "Right skewed" = 'rlnorm'),
           selected = "rnorm"
         ),
         
@@ -24,6 +25,7 @@ ui <- fluidPage(
         uiOutput("mu"),
         uiOutput("sd"),
         uiOutput("coin"),
+        uiOutput("skew"),
         
         # Select sample size ----
         sliderInput("n", "Sample size:", value = 30, min = 2, max = 500),
@@ -34,11 +36,11 @@ ui <- fluidPage(
         sliderInput("k", "Repeated samples:", value = 1000, min = 10, max = 1000),
         
         
-        # Credit ----
+        # Information ----
         br(),
         HTML(paste0(
           "Developed for <strong>DSE1101</strong>: Introduction to Data Science for Economics, ",
-          "with adaptations from tools by <a href='https://www.openintro.org/book/ims/' target='_blank'>IMS</a> ",
+          "with adaptations from <a href='https://www.openintro.org/book/ims/' target='_blank'>IMS</a> ",
           "(Introduction to Modern Statistics)."
         ))
       ) 
@@ -51,7 +53,16 @@ ui <- fluidPage(
         tabPanel(
           title = "Population Distribution",
           plotOutput("pop.dist", height = "500px"),
-          br()
+          br(),
+          conditionalPanel(
+            condition = "input.dist == 'rlnorm'",
+            helpText(
+              HTML(
+                "Note: The right-skewed distribution shown here is generated from a ",
+                "<a href='https://en.wikipedia.org/wiki/Log-normal_distribution' target='_blank'>lognormal distribution</a>"
+              )
+            )
+          )
         ),
         # Second tab ----
         tabPanel(
@@ -123,14 +134,39 @@ server <- function(input, output, session) {
     }
   })
   
+  # skew slider for rlnorm and rbeta ----
+  output$skew = renderUI(
+    {
+      
+      if (input$dist == "rlnorm"){
+        selectInput(inputId = "skew",
+                    label = "Skewness:",
+                    choices = c("Moderately skew" = "low",
+                                "Highly skewed" = "high"),
+                    selected = "high")
+      }
+    })
+  
   # RNG helper ----
-  rand_draw <- function(dist, n, mu, sd, prob) {
+  rand_draw <- function(dist, n, mu, sd, prob = NULL, skew = NULL) {
     if (dist == "rnorm") {
+      
       req(mu, sd)
       return(rnorm(n, mean = mu, sd = sd))
+      
     } else if (dist == "rbinom") {
+      
       req(prob)
       return(rbinom(n, size = 1, prob = prob))  # Bernoulli( p )
+      
+    } else if (dist == "rlnorm"){
+      
+      req(skew)
+      if (skew == "low"){
+        vals = do.call(dist, list(n=n, meanlog=0, sdlog=.5))
+      } else if (skew == "high"){
+        vals = do.call(dist, list(n=n, meanlog=0, sdlog=1))
+      }
     }
   }
   rep_rand_draw <- repeatable(rand_draw)
@@ -138,7 +174,7 @@ server <- function(input, output, session) {
   # Population (large) ----
   parent <- reactive({
     n_sample <- 1e6
-    rep_rand_draw(input$dist, n_sample, input$mu, input$sd, input$p)
+    rep_rand_draw(input$dist, n_sample, input$mu, input$sd, input$p, input$skew)
   })
   
   # Samples matrix: k columns, each column is a sample of size n ----
@@ -150,6 +186,7 @@ server <- function(input, output, session) {
   # Code to reproduce one sample
   output$repro_code <- renderText({
     seed_line <- sprintf("set.seed(%s)", seed)
+    
     if (input$dist == "rnorm") {
       paste(
         seed_line,
@@ -157,6 +194,13 @@ server <- function(input, output, session) {
         sprintf("mu <- %s", signif(input$mu, 6)),
         sprintf("sd <- %s", signif(input$sd, 6)),
         "rnorm(n, mean = mu, sd = sd)",
+        sep = "\n"
+      )
+    } else if (input$dist == "rlnorm") {
+      paste(
+        seed_line,
+        sprintf("n <- %d", input$n),
+        "rlnorm(n, meanlog = 0, sdlog = 0.5)     # lognormal distribution",
         sep = "\n"
       )
     } else { # Bernoulli (coin flip)
@@ -181,6 +225,18 @@ server <- function(input, output, session) {
         "sample_means <- numeric(k)",
         "for (i in 1:k) {",
         "  samples <- rnorm(n, mean = mu, sd = sd)",
+        "  sample_means[i] <- mean(samples)",
+        "}",
+        "sample_means",
+        sep = "\n"
+      )
+    } else if (input$dist == "rlnorm") {
+      paste(
+        seed_line,
+        sprintf("k <- %d", input$k),
+        "sample_means <- numeric(k)",
+        "for (i in 1:k) {",
+        "  samples <- rlnorm(n, meanlog = 0, sdlog = 0.5)",
         "  sample_means[i] <- mean(samples)",
         "}",
         "sample_means",
@@ -216,7 +272,8 @@ server <- function(input, output, session) {
   output$pop.dist <- renderPlot({
     distname <- switch(input$dist,
                        rnorm  = "Population distribution: Normal",
-                       rbinom = "Population distribution: Bernoulli")
+                       rbinom = "Population distribution: Bernoulli",
+                       rlnorm = "Population distribution: Right skewed")
     
     pop <- parent()
     m_pop <- round(mean(pop), 1)
@@ -231,7 +288,6 @@ server <- function(input, output, session) {
                       max(100, max(df$samples)) - 40)
       
       ggplot(df, aes(x = samples, y = ..density..)) +
-        #geom_histogram(bins = 25, color = "white", fill = "steelblue") +
         stat_density(geom = "line", color = "steelblue", size = 1) +
         scale_x_continuous(limits = c(min(-100, df$samples), max(100, df$samples))) +
         labs(title = distname, x = "x") +
@@ -240,6 +296,27 @@ server <- function(input, output, session) {
                                "\nSD =", sd_pop),
                  color = "black", size = 5) +
         theme_classic(base_size = 19) +
+        theme(plot.title = element_text(hjust = 0.5),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank())
+      
+    } else if (input$dist == "rlnorm"){
+      
+      pop <- parent()
+      df <- tibble(samples = pop)
+      x_range <- max(df$samples) - min(df$samples)
+      y_pos <- 0.8 * max(density(df$samples)$y)  # or compute after density
+      x_pos <- max(df$samples) - 0.1 * x_range
+      
+      ggplot(data = df, aes(x = samples, y = ..density..)) + 
+        geom_histogram(bins = 45, color = "white", fill = "steelblue") +
+        stat_density(geom = "line", color = "steelblue", size = 1) +
+        labs(title = distname, x = "x") +
+        annotate("text", x = x_pos, y = y_pos,
+                 label = paste("mean", "=", bquote(.(m_pop)), 
+                               "\n", "SD", "=", bquote(.(sd_pop))),
+                 color = "black", size = 5) +
+        theme_light(base_size = 19) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank())
@@ -285,6 +362,27 @@ server <- function(input, output, session) {
         labs(title = distname, x = "x", y = "",
              subtitle = paste("mean =", m_pop, ", SD =", sd_pop)) +
         theme_classic(base_size = 10) +
+        theme(plot.title = element_text(hjust = 0.5),
+              panel.grid.major = element_blank(),
+              panel.grid.minor = element_blank())
+      
+    } else if (input$dist == "rlnorm"){
+      
+      pop <- parent()
+      df <- tibble(samples = pop)
+      x_range <- max(df$samples) - min(df$samples)
+      y_pos <- 0.8 * max(density(df$samples)$y)  # or compute after density
+      x_pos <- max(df$samples) - 0.1 * x_range
+      
+      ggplot(data = df, aes(x = samples, y = ..density..)) + 
+        geom_histogram(bins = 45, color = "white", fill = "steelblue") +
+        stat_density(geom = "line", color = "steelblue", size = 1) +
+        labs(title = distname, x = "x") +
+        annotate("text", x = x_pos, y = y_pos,
+                 label = paste("mean", "=", bquote(.(m_pop)), 
+                               "\n", "SD", "=", bquote(.(sd_pop))),
+                 color = "black", size = 3) +
+        theme_light(base_size = 10) +
         theme(plot.title = element_text(hjust = 0.5),
               panel.grid.major = element_blank(),
               panel.grid.minor = element_blank())
@@ -339,7 +437,8 @@ server <- function(input, output, session) {
   output$sampling.dist <- renderPlot({
     distname <- switch(input$dist,
                        rnorm  = "normal population",
-                       rbinom = "Bernoulli population")
+                       rbinom = "Bernoulli population",
+                       rlnorm  = "right skewed population")
     
     ndist <- tibble(means = colMeans(samples()))
     m_samp <- round(mean(ndist$means), 2)
@@ -369,7 +468,8 @@ server <- function(input, output, session) {
   output$sampling.descr <- renderText({
     distname <- switch(input$dist,
                        rnorm  = "normal population",
-                       rbinom = "Bernoulli (coin flip)")
+                       rbinom = "Bernoulli (coin flip)",
+                       rlnorm  = "right skewed population")
     paste("Distribution of means of", input$k, "random samples,",
           "each with", input$n, "observations from a", distname)
   })
