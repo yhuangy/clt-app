@@ -273,7 +273,7 @@ server <- function(input, output, session) {
     distname <- switch(input$dist,
                        rnorm  = "Population distribution: Normal",
                        rbinom = "Population distribution: Bernoulli",
-                       rlnorm = "Population distribution: Right skewed")
+                       rlnorm = "Population distribution: Lognormal")
     
     pop <- parent()
     m_pop <- round(mean(pop), 1)
@@ -341,7 +341,8 @@ server <- function(input, output, session) {
   output$pop.dist.two <- renderPlot({
     distname <- switch(input$dist,
                        rnorm  = "Population distribution: Normal",
-                       rbinom = "Population distribution: Bernoulli (coin flip)")
+                       rbinom = "Population distribution: Bernoulli (coin flip)",
+                       rlnorm = "Population distribution: Lognormal")
     
     pop <- parent()
     m_pop <- round(mean(pop), 1)
