@@ -58,7 +58,7 @@ ui <- fluidPage(
             condition = "input.dist == 'rlnorm'",
             helpText(
               HTML(
-                "Note: The right-skewed distribution shown here is generated from a ",
+                "Note: The right-skewed distribution above is generated from a ",
                 "<a href='https://en.wikipedia.org/wiki/Log-normal_distribution' target='_blank'>lognormal distribution</a>"
               )
             )
