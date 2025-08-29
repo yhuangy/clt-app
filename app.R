@@ -59,7 +59,7 @@ ui <- fluidPage(
             helpText(
               HTML(
                 "Note: The right-skewed distribution above is generated from a ",
-                "<a href='https://en.wikipedia.org/wiki/Log-normal_distribution' target='_blank'>lognormal distribution</a>"
+                "<a href='https://en.wikipedia.org/wiki/Log-normal_distribution' target='_blank'>lognormal distribution</a>."
               )
             )
           )
